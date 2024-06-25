@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "requests-glob"
+authors = [{name = "David Shea", email = "reallylongword@gmail.com"}]
+license = {text = "Apache 2.0"}
+description = "File transport adapter for Requests"
+readme = "README.rst"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Plugins",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+]
+urls = {Homepage = "https://github.com/dashea/requests-file"}
+dependencies = ["requests_file>=1.0.0", "sortedcontainers>=1.0.0"]
+version = "1.0.0"
+
+[tool.distutils.bdist_wheel]
+universal = 1
+
+[tool.setuptools]
+py-modules = ["requests_glob"]
+include-package-data = false
+
+[tool.setuptools_scm]
