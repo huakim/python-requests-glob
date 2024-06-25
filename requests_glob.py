@@ -5,6 +5,89 @@ import glob2 as glob
 
 from sortedcontainers import SortedSet
 
+if not hasattr(FileAdapter, 'open_raw'):
+  from requests.adapters import BaseAdapter
+  from requests.compat import urlparse, unquote
+  from requests import Response, codes
+  import errno
+  import stat
+  import locale
+  from urllib.parse import parse_qs as parse_query
+
+  try:
+    from io import BytesIO
+  except ImportError:
+    from StringIO import StringIO as BytesIO
+
+  import io
+  import os
+
+  class FileAdapter(BaseAdapter):
+    def __init__(self, set_content_length=True, query={}):
+        super(FileAdapter, self).__init__()
+        self._set_content_length = set_content_length
+    def open_raw(self, path, query):
+        raw = io.open(path, 'rb')
+        resp_stat = os.fstat(raw.fileno())
+        raw.len = resp_stat.st_size
+        return raw
+    def send(self, request, **kwargs):
+        if request.method not in ("GET", "HEAD"):
+            raise ValueError("Invalid request method %s" % request.method)
+        url_parts = urlparse(request.url)
+        url_parts_netloc = url_parts.netloc
+        if url_parts_netloc and url_parts_netloc != "localhost" and url_parts_netloc != '.':
+            raise ValueError("file: URLs with hostname components are not permitted")
+
+        resp = Response()
+        resp.request = request
+        try:
+            path_parts = [unquote(p) for p in url_parts.path.split("/")]
+            while path_parts and not path_parts[0]:
+                path_parts.pop(0)
+            if any(os.sep in p for p in path_parts):
+                raise IOError(errno.ENOENT, os.strerror(errno.ENOENT))
+            if path_parts and (
+                path_parts[0].endswith("|") or path_parts[0].endswith(":")
+            ):
+                path_drive = path_parts.pop(0)
+                if path_drive.endswith("|"):
+                    path_drive = path_drive[:-1] + ":"
+
+                while path_parts and not path_parts[0]:
+                    path_parts.pop(0)
+            else:
+                path_drive = ""
+            if url_parts_netloc == '.':
+                path = os.path.join(*path_parts)
+            elif path_drive and not os.path.splitdrive(path):
+                path = os.sep + os.path.join(path_drive, *path_parts)
+            else:
+                path = path_drive + os.sep + os.path.join(*path_parts)
+            raw = self.open_raw(path, parse_query(url_parts.query))
+            resp.raw = raw
+            resp.raw.release_conn = raw.close
+        except IOError as e:
+            if e.errno == errno.EACCES:
+                resp.status_code = codes.forbidden
+            elif e.errno == errno.ENOENT:
+                resp.status_code = codes.not_found
+            else:
+                resp.status_code = codes.bad_request
+            resp_str = str(e).encode(locale.getpreferredencoding(False))
+            raw = resp.raw = BytesIO(resp_str)
+            if self._set_content_length:
+                resp.headers["Content-Length"] = len(resp_str)
+            resp.raw.release_conn = raw.close
+        else:
+            resp.status_code = codes.ok
+            resp.url = request.url
+            if self._set_content_length:
+                resp.headers["Content-Length"] = raw.len
+        return resp
+    def close(self):
+        pass
+
 class F:
   def __init__(self, file):
     self.file = file
