@@ -1,7 +1,7 @@
 from requests_file import FileAdapter
 
 import math
-import glob
+import glob2 as glob
 
 from sortedcontainers import SortedSet
 
