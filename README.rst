@@ -37,7 +37,7 @@ Contributing
 ------------
 
 Contributions welcome! Feel free to open a pull request against
-https://github.com/dashea/requests-glob
+https://github.com/huakim/python-requests-glob
 
 License
 -------
