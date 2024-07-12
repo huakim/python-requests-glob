@@ -172,8 +172,6 @@ class GlobAdapter(FileAdapter):
     def __init__(self, set_content_length=True, netloc_paths={'localhost': ''}, **kwargs):
         super().__init__(set_content_length, netloc_paths)
         __def_query = {
-            'glob_recursive':True,
-            'glob_include_hidden':False,
             'glob':True,
             'merge':1,
         }
