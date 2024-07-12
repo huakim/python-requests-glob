@@ -1,10 +1,8 @@
 from requests_file import FileAdapter
 
 import math
-import glob2 as glob
-
 from sortedcontainers import SortedSet
-
+import glob2 as glob
 
 class F:
   def __init__(self, file):
@@ -209,7 +207,7 @@ class GlobAdapter(FileAdapter):
         if merge < 1:
             merge = math.inf
         if (self.get_flag(query, 'glob')):
-            files = glob.glob(path,
+            files = glob.glob(str(path),
                 include_hidden = self.get_flag(query, 'glob_include_hidden'),
                 recursive = self.get_flag(query, 'glob_recursive'))
             filelen = len(files)
@@ -219,7 +217,7 @@ class GlobAdapter(FileAdapter):
             if filelen == 0:
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), path)
         else:
-            files = [path]
+            files = [str(path)]
         if len(files) == 1:
             return super().open_raw(files[0], query)
         else:
