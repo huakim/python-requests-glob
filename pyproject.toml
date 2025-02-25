@@ -15,6 +15,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
 ]
+
 urls = {Homepage = "https://github.com/dashea/requests-file"}
 dependencies = ["requests-file>=1.0.0", "sortedcontainers>=1.0.0", "glob2>=0.1"]
 version = "0.1"
