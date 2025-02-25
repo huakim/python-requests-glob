@@ -11,34 +11,26 @@ class F:
     def __init__(self, file):
         self.file = file
 
-
     def __getattr__(self, name):
         return getattr(self.file, name)
-
 
     def __eq__(self, a) -> bool:
         return (self.begin <= a) and (self.end > a)
 
-
     def __gt__(self, a) -> bool:
         return self.begin > a
-
 
     def __lt__(self, a) -> bool:
         return not (self >= a)
 
-
     def __ge__(self, a) -> bool:
         return (self.begin > a) or (self.end > a)
-
 
     def __le__(self, a) -> bool:
         return not (self > a)
 
-
     def __ne__(self, a) -> bool:
         return not (self == a)
-
 
     def __hash__(self) -> int:
         begin = self.begin
@@ -70,13 +62,11 @@ def FilesIO(file_names):
     isclosed = False
     methods = {}
 
-
     def add(func):
         name = func.__name__
         func = staticmethod(func)
         methods[name] = func
         return func
-
 
     @add
     def close():
@@ -86,12 +76,10 @@ def FilesIO(file_names):
                 i.close()
             isclosed = True
 
-
     @add
     def closed():
         nonlocal isclosed
         return isclosed
-
 
     @add
     def readable():
@@ -99,39 +87,31 @@ def FilesIO(file_names):
             raise ValueError("I/O operation on closed file")
         return True
 
-
     methods["seekable"] = readable
-
 
     def tostring(self):
         return "<FilesIO(" + repr(file_names) + ") at " + hex(id(self)) + ">"
-
 
     @add
     def fileno():
         return OSError("not supported")
 
-
     @add
     def flush():
         pass
 
-
     @add
     def isatty():
         return False
-
 
     @add
     def tell():
         nonlocal current_offset
         return current_offset
 
-
     @add
     def writable():
         return not readable()
-
 
     @add
     def seek(offset, whence=0):
@@ -143,7 +123,6 @@ def FilesIO(file_names):
         if offset < 0:
             offset = 0
         return set_offset(offset)
-
 
     def set_offset(offset):
         nonlocal current_offset, current_file, files
@@ -161,14 +140,12 @@ def FilesIO(file_names):
         current_file.seek(current_offset - current_file.begin)
         return current_offset
 
-
     def search_file(offset):
         nonlocal files
         try:
             return files[files.index(offset)]
         except ValueError:
             return files[-1]
-
 
     @add
     def readinto(ret):
@@ -196,7 +173,6 @@ def FilesIO(file_names):
                 current_offset += size
                 return default_size
 
-
     @add
     def read(size=-1):
         nonlocal current_offset, length
@@ -205,7 +181,6 @@ def FilesIO(file_names):
         ret = bytearray(size)
         size = readinto(ret)
         return bytes(memoryview(ret)[:size])
-
 
     @add
     def readall():
@@ -219,7 +194,7 @@ def FilesIO(file_names):
 
 
 class __GlobAdapter:
-    def __init__(self, netloc_paths={}, **kwargs):
+    def __init__(self, netloc_paths, **kwargs):
         __def_query = {
             "glob": True,
             "merge": 1,
@@ -227,7 +202,6 @@ class __GlobAdapter:
         __def_query.update(kwargs)
         self.__netloc_paths = netloc_paths
         self.__def_query = __def_query
-
 
     def get_flag(self, query, name) -> bool:
         h = str(query.get(name, [""])[-1]).lower()
@@ -238,10 +212,8 @@ class __GlobAdapter:
         else:
             return bool(self.__def_query.get(name))
 
-
     def get_flag_val(self, query, name):
         return query.get(name, [self.__def_query.get(name)])[-1]
-
 
     def get_flag_val_strict(self, query, name, value_type=int):
         try:
@@ -252,7 +224,6 @@ class __GlobAdapter:
                 return value_type(str(val))
             else:
                 return val
-
 
     def open_raw(self, resp):
         # Check for query parameters
@@ -286,6 +257,7 @@ class __GlobAdapter:
             if filelen > merge:
                 files = files[:merge]
                 filelen = merge
+
             if len(files) == 1:
                 resp.file_path = files[0]
 
@@ -294,12 +266,15 @@ class __GlobAdapter:
                 readTextFile(resp, filesio, filesio.len)
 
 
-def createGlobAdapter(adapter: FileAdapter, **kwargs) -> FileAdapter:
-    gl = __GlobAdapter(**kwargs)
-    adapter.add_netloc(".", gl.open_raw)
-    adapter.add_netloc("localhost", gl.open_raw)
+def createGlobAdapter(
+    adapter: FileAdapter, netloc_paths: dict = {}, **kwargs
+) -> FileAdapter:
+    gl = __GlobAdapter(netloc_paths, **kwargs)
+    adapter.add_handler(gl.open_raw)
     return adapter
 
 
-def GlobAdapter(set_content_length: bool = True, **kwargs) -> FileAdapter:
-    return createGlobAdapter(FileAdapter(set_content_length), **kwargs)
+def GlobAdapter(
+    set_content_length: bool = True, netloc_paths: dict = {}, **kwargs
+) -> FileAdapter:
+    return createGlobAdapter(FileAdapter(set_content_length), netloc_paths, **kwargs)
