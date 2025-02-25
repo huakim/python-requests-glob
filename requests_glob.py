@@ -194,13 +194,12 @@ def FilesIO(file_names):
 
 
 class __GlobAdapter:
-    def __init__(self, netloc_paths, **kwargs):
+    def __init__(self, **kwargs):
         __def_query = {
             "glob": True,
             "merge": 1,
         }
         __def_query.update(kwargs)
-        self.__netloc_paths = netloc_paths
         self.__def_query = __def_query
 
     def get_flag(self, query, name) -> bool:
@@ -230,15 +229,6 @@ class __GlobAdapter:
         query = resp.query_params
         # Check for file path
         path = resp.file_path
-        # If got 'current directory' netloc, then set parent dir as current
-        if resp.url_netloc == ".":
-            func = self.__netloc_paths.get(resp.url_netloc)
-            if callable(func):
-                func = func()
-            if func:
-                path = func + path
-                resp.file_path = path
-                resp.url_netloc = "localhost"
         # get merge query parameter
         merge = self.get_flag_val_strict(query, "merge", int)
         if merge < 1:
@@ -269,7 +259,9 @@ class __GlobAdapter:
 def createGlobAdapter(
     adapter: FileAdapter, netloc_paths: dict = {}, **kwargs
 ) -> FileAdapter:
-    gl = __GlobAdapter(netloc_paths, **kwargs)
+    gl = __GlobAdapter(**kwargs)
+    for key, value in netloc_paths.items():
+        adapter.add_netloc(key, value)
     adapter.add_handler(gl.open_raw)
     return adapter
 
