@@ -1,4 +1,7 @@
-from requests_file import FileAdapter, readTextFile
+try:
+  from ..requests_file.requests_file import FileAdapter, readTextFile
+except ImportError:
+  from requests_file import FileAdapter, readTextFile
 
 import math
 from sortedcontainers import SortedSet

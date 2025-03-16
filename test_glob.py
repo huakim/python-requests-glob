@@ -1,5 +1,6 @@
+import requests_glob
 def test_glob():
-    from requests_glob import GlobAdapter
+    GlobAdapter=requests_glob.GlobAdapter
     from requests import Session
     import os
 
