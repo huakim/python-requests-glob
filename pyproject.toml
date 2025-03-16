@@ -18,7 +18,7 @@ classifiers = [
 
 urls = {Homepage = "https://github.com/dashea/requests-file"}
 dependencies = ["requests-file>=3.0.0", "sortedcontainers>=1.0.0", "glob2>=0.1"]
-version = "0.1"
+version = "0.2"
 
 [tool.distutils.bdist_wheel]
 universal = 1

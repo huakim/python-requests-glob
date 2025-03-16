@@ -1,14 +1,13 @@
 try:
-  from ..requests_file.requests_file import FileAdapter, readTextFile
+    from ..requests_file.requests_file import FileAdapter, readTextFile
 except ImportError:
-  from requests_file import FileAdapter, readTextFile
+    from requests_file import FileAdapter, readTextFile
 
 import math
+import os
 from sortedcontainers import SortedSet
 import glob2 as glob
-from os import getcwd
-from os.path import join
-
+import io
 
 class F:
     def __init__(self, file):
@@ -49,7 +48,7 @@ def FilesIO(file_names):
     for index, file in enumerate(file_names):
         file = io.open(file, "rb")
         file.index = index
-        if prev != None:
+        if prev is not None:
             prev.next = file
         file.prev = prev
         file.next = None
